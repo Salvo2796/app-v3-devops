@@ -2,7 +2,14 @@
 
 ## 1. Obiettivo compreso
 Spiego con parole mie il flusso:
-GitHub -> Azure DevOps -> ACR -> ACI
+Preparo la repository con i file su Github
+- Collego AzureDevOps attraverso Service Connection sia a Github sia a Azure
+- In Azure ho creato ResourceGroup e AZRegistry
+- Creo il mio Pool Agent, in questo caso sarà Self-Host
+- Creo la Pipeline su AzureDevOps, prendendo il file yaml che ho in GitHub
+- Avvio la Pipeline
+- Crea immagine Docker e la pusha su AZRegistry
+- Se tutto va bene, crea l'ACI in Azure
 
 ## 2. Repository GitHub
 Indico il nome del repository usato e il branch principale.
@@ -16,7 +23,9 @@ Indico:
 - nome della Azure Resource Manager service connection: sc-obs-azure-rg
 
 ## 4. Build e push immagine
-Spiego quale immagine è stata costruita e con quale tag.
+- docker build -t obsacr11696.azurecr.io/obsapp-v3:41 .
+
+- docker push obsacr11696.azurecr.io/obsapp-v3:41
 
 ## 5. Deploy su ACI
 Indico:
@@ -37,4 +46,4 @@ Incollo l’output di:
 {"timestamp": "2026-04-14T10:30:07.078551+00:00", "level": "INFO", "message": "request_completed", "request_id": "bd7a6697-f716-42ee-b908-9f1cf299f295", "method": "GET", "path": "/", "status": 200, "latency_ms": 0.14, "client_ip": "10.92.0.9", "user_agent": "curl/8.5.0"}
 
 ## 8. Problemi incontrati
-Descrivo eventuali errori e come li ho risolti.
+Creazione di Agent Pool(self-hosted) e comando Azure create. Vedi file Troubleshooting

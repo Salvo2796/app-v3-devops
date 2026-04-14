@@ -1,13 +1,13 @@
-trigger:
+trigger: #Parte automaticamnete quando facciamo il push sul branch: main
   - main
 
-pr: none
+pr: none #Non parte sulle Pull Request.
 
 pool:
-  name: Default
+  name: Default #Usa l’agent pool chiamato Default.
 
-variables:
-  azureServiceConnection: "sc-obs-azure-rg"
+variables: #Variabili che useremo dopo
+  azureServiceConnection: "sc-obs-azure-rg" #Nome della Service Connection Azure DevOps che autentica verso Azure.
   resourceGroupName: "rg-observability-dev"
   acrName: "obsacr11696"
   imageName: "obsapp-v3"
@@ -16,20 +16,20 @@ variables:
   location: "westeurope"
   containerPort: "8000"
 
-stages:
-  - stage: BuildAndDeploy
-    displayName: Build, Push and Deploy
+stages: #Le stages sono le fasi
+  - stage: BuildAndDeploy #Nome logico della fase.
+    displayName: Build, Push and Deploy #Nome leggibile in UI.
     jobs:
-      - job: BuildPushDeploy
+      - job: BuildPushDeploy #Job principale
         displayName: Build image, push to ACR, deploy to ACI
-        steps:
-          - checkout: self
+        steps: #Lista dei comandi eseguiti.
+          - checkout: self #Clona il repository corrente nell’agent.
 
-          - task: AzureCLI@2
+          - task: AzureCLI@2 #Task ufficiale Azure DevOps che esegue Azure CLI autenticata.
             displayName: Build image, push to ACR and deploy to ACI
             inputs:
-              azureSubscription: "$(azureServiceConnection)"
-              scriptType: "bash"
+              azureSubscription: "$(azureServiceConnection)" #Usa la service connection per loggarsi automaticamente.
+              scriptType: "bash" #Lo script è bash.
               scriptLocation: "inlineScript"
               inlineScript: |
                 set -e

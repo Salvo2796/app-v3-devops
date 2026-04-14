@@ -15,6 +15,8 @@ Aggiungere agent
 - Scaricare agent Linux
 - Eseguire le istruzioni da riga di comando  
 - Quando si lancia il comando .\config.cmd bisogna inserire come URL: https://dev.azure.com/TUA-ORG e il token ottenuto
+- Eseguire .\run.cmd
+- Se tutto è corretto dovrebbe restituire Listening for job
 
 # AZURE CREATE
 - Abilitare admin su ACR, lanciando da riga di comando questo: 
