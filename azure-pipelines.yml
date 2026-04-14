@@ -58,10 +58,27 @@ stages:
             --resource-group $(resourceGroupName) \
             --name $(aciName) \
             --yes || true
+          
+          echo "IMAGE=${FULL_IMAGE_NAME}"
+          echo "DNS=$(aciDnsName)"
+          echo "RG=$(resourceGroupName)"
 
           echo "Creo nuovo container su ACI"
-
-          az container create --resource-group $(resourceGroupName) --name $(aciName) --image ${FULL_IMAGE_NAME} --os-type Linux --cpu 1 --memory 1.5 --ports $(containerPort) --ip-address Public --dns-name-label $(aciDnsName) --location $(location) --registry-login-server $(acrName).azurecr.io --registry-username ${ACR_USER} --registry-password ${ACR_PASS} --environment-variables PORT=$(containerPort)
+          az container create \
+          --resource-group $(resourceGroupName) \
+          --name $(aciName) \
+          --image ${FULL_IMAGE_NAME} \
+          --os-type Linux \
+          --cpu 1 \
+          --memory 1.5 \
+          --ports $(containerPort) \
+          --ip-address Public \
+          --dns-name-label $(aciDnsName) \
+          --location $(location) \
+          --registry-login-server $(acrName).azurecr.io \
+          --registry-username ${ACR_USER} \
+          --registry-password ${ACR_PASS} \
+          --environment-variables PORT=$(containerPort)
 
           echo "Recupero FQDN"
           FQDN=$(az container show \
