@@ -8,11 +8,11 @@ pool:
 
 variables:
   azureServiceConnection: 'sc-obs-azure-rg'
-  resourceGroupName: 'rg-observability-lab'
-  acrName: 'obsacr11697'
+  resourceGroupName: 'rg-observability-dev'
+  acrName: 'obsacr11696'
   imageName: 'obsapp-v3'
   aciName: 'obsapp-v3-aci'
-  aciDnsName: 'obsappv3-11697'
+  aciDnsName: 'obsappv3-11696'
   location: 'westeurope'
   containerPort: '8000'
 
