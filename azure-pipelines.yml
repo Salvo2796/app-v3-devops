@@ -51,8 +51,10 @@ stages:
                 echo "Elimino eventuale container precedente"
                 az container delete --resource-group $(resourceGroupName) --name $(aciName) --yes || true
 
-                echo "Creo nuovo container su ACI"
+                ACR_USER=$(az acr credential show -n $(acrName) --query username -o tsv)
+                ACR_PASS=$(az acr credential show -n $(acrName) --query "passwords[0].value" -o tsv)
 
+                echo "Creo nuovo container su ACI"
                 az container create \
                 --resource-group $(resourceGroupName) \
                 --name $(aciName) \
@@ -63,8 +65,15 @@ stages:
                 --ports $(containerPort) \
                 --ip-address Public \
                 --dns-name-label $(aciDnsName) \
-                --location $(location)
+                --location $(location) \
+                --registry-login-server $(acrName).azurecr.io \
+                --registry-username $ACR_USER \
+                --registry-password $ACR_PASS
 
                 echo "Recupero FQDN"
-                az container show --resource-group $(resourceGroupName) --name $(aciName) --query ipAddress.fqdn -o tsv
-                        echo "Applicazione disponibile su: http://${FQDN}:$(containerPort)"
+                FQDN=$(az container show \
+                  --resource-group $(resourceGroupName) \
+                  --name $(aciName) \
+                  --query ipAddress.fqdn -o tsv)
+
+                echo "Applicazione disponibile su: http://$FQDN:$(containerPort)"
