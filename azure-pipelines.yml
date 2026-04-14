@@ -38,11 +38,22 @@ stages:
                 echo "Verifica subscription attiva"
                 az account show
 
-                echo "Login ACR"
-                az acr login --name $(acrName)
+                echo "Login Docker su ACR"
+
+                ACR_USER=$(az acr credential show -n $(acrName) --query username -o tsv)
+                ACR_PASS=$(az acr credential show -n $(acrName) --query "passwords[0].value" -o tsv)
+
+                echo $ACR_PASS | docker login $(acrName).azurecr.io \
+                  -u $ACR_USER --password-stdin
 
                 IMAGE_TAG=$(Build.BuildId)
                 FULL_IMAGE_NAME="$(acrName).azurecr.io/$(imageName):${IMAGE_TAG}"
+
+                echo "Build immagine"
+                docker build -t $FULL_IMAGE_NAME .
+
+                echo "Push immagine"
+                docker push $FULL_IMAGE_NAME
 
                 echo "IMAGE=${FULL_IMAGE_NAME}"
                 echo "DNS=$(aciDnsName)"
@@ -50,9 +61,6 @@ stages:
 
                 echo "Elimino eventuale container precedente"
                 az container delete --resource-group $(resourceGroupName) --name $(aciName) --yes || true
-
-                ACR_USER=$(az acr credential show -n $(acrName) --query username -o tsv)
-                ACR_PASS=$(az acr credential show -n $(acrName) --query "passwords[0].value" -o tsv)
 
                 echo "Creo nuovo container su ACI"
                 az container create \
