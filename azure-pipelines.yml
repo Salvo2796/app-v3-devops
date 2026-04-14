@@ -52,7 +52,20 @@ stages:
                 az container delete --resource-group $(resourceGroupName) --name $(aciName) --yes || true
 
                 echo "Creo nuovo container su ACI"
-                az container create --resource-group $(resourceGroupName) --name $(aciName) --image ${FULL_IMAGE_NAME} --os-type Linux --cpu 1 --memory 1.5 --ports $(containerPort) --ip-address Public --dns-name-label $(aciDnsName) --location $(location) --registry-login-server $(acrName).azurecr.io --registry-username ${ACR_USER} --registry-password $(az acr credential show -n $(acrName) --query "passwords[0].value" -o tsv) --environment-variables PORT=$(containerPort)
+                az container create \
+                  --resource-group $(resourceGroupName) \
+                  --name $(aciName) \
+                  --image ${FULL_IMAGE_NAME} \
+                  --os-type Linux \
+                  --cpu 1 \
+                  --memory 1.5 \
+                  --ports $(containerPort) \
+                  --ip-address Public \
+                  --dns-name-label $(aciDnsName) \
+                  --location $(location) \
+                  --registry-login-server $(acrName).azurecr.io \
+                  --registry-identity systemAssigned \
+                  --environment-variables PORT=$(containerPort)
 
                 echo "Recupero FQDN"
                 az container show --resource-group $(resourceGroupName) --name $(aciName) --query ipAddress.fqdn -o tsv
