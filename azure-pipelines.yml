@@ -64,8 +64,8 @@ stages:
 
                 echo "Recupero credenziali ACR"
 
-                ACR_USER=$(az acr credential show -n $(acrName) --query username -o tsv)
-                ACR_PASS=$(az acr credential show -n $(acrName) --query "passwords[0].value" -o tsv)
+                ACR_USER=$(az acr credential show -n $(acrName) --query username -o tsv | tr -d '\r\n')
+                ACR_PASS=$(az acr credential show -n $(acrName) --query "passwords[0].value" -o tsv | tr -d '\r\n')
 
                 echo "Creo nuovo container su ACI"
                 az container create \
