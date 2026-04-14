@@ -52,6 +52,7 @@ stages:
                 az container delete --resource-group $(resourceGroupName) --name $(aciName) --yes || true
 
                 echo "Creo nuovo container su ACI"
+
                 az container create \
                   --resource-group $(resourceGroupName) \
                   --name $(aciName) \
@@ -64,7 +65,8 @@ stages:
                   --dns-name-label $(aciDnsName) \
                   --location $(location) \
                   --registry-login-server $(acrName).azurecr.io \
-                  --registry-identity systemAssigned \
+                  --registry-username $(acrName) \
+                  --registry-password $(az acr credential show -n $(acrName) --query "passwords[0].value" -o tsv) \
                   --environment-variables PORT=$(containerPort)
 
                 echo "Recupero FQDN"
