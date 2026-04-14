@@ -1,9 +1,3 @@
-resources:
-  repositories:
-    - repository: self
-      type: github
-      endpoint: github-service-connection-name
-
 trigger:
   - main
 
@@ -23,66 +17,43 @@ variables:
   containerPort: "8000"
 
 stages:
-- stage: BuildAndDeploy
-  displayName: Build, Push and Deploy
-  jobs:
-  - job: BuildPushDeploy
-    displayName: Build image, push to ACR, deploy to ACI
-    steps:
-    - checkout: self
+  - stage: BuildAndDeploy
+    displayName: Build, Push and Deploy
+    jobs:
+      - job: BuildPushDeploy
+        displayName: Build image, push to ACR, deploy to ACI
+        steps:
+          - checkout: self
 
-    - task: AzureCLI@2
-      displayName: Deploy to ACI
-      inputs:
-        azureSubscription: "$(azureServiceConnection)"
-        scriptType: bash
-        scriptLocation: inlineScript
-        inlineScript: |
-          set -e
-          set -x
+          - task: AzureCLI@2
+            displayName: Build image, push to ACR and deploy to ACI
+            inputs:
+              azureSubscription: "$(azureServiceConnection)"
+              scriptType: "bash"
+              scriptLocation: "inlineScript"
+              inlineScript: |
+                set -e
+                set -x
 
-          echo "=== CHECK SUBSCRIPTION ==="
-          az account show
+                echo "Verifica subscription attiva"
+                az account show
 
-          echo "=== LOGIN ACR ==="
-          az acr login --name $(acrName)
+                echo "Login ACR"
+                az acr login --name $(acrName)
 
-          IMAGE_TAG=$(Build.BuildId)
-          FULL_IMAGE_NAME="$(acrName).azurecr.io/$(imageName):${IMAGE_TAG}"
+                IMAGE_TAG=$(Build.BuildId)
+                FULL_IMAGE_NAME="$(acrName).azurecr.io/$(imageName):${IMAGE_TAG}"
 
-          echo "IMAGE: $FULL_IMAGE_NAME"
-          echo "DNS: $(aciDnsName)"
+                echo "IMAGE=${FULL_IMAGE_NAME}"
+                echo "DNS=$(aciDnsName)"
+                echo "RG=$(resourceGroupName)"
 
-          echo "=== DELETE OLD CONTAINER (ignore errors) ==="
-          az container delete \
-            --resource-group $(resourceGroupName) \
-            --name $(aciName) \
-            --yes || true
+                echo "Elimino eventuale container precedente"
+                az container delete --resource-group $(resourceGroupName) --name $(aciName) --yes || true
 
-          echo "=== CREATE NEW CONTAINER ==="
-          az container create \
-            --resource-group $(resourceGroupName) \
-            --name $(aciName) \
-            --image $FULL_IMAGE_NAME \
-            --os-type Linux \
-            --cpu 1 \
-            --memory 1.5 \
-            --ports $(containerPort) \
-            --ip-address Public \
-            --dns-name-label $(aciDnsName) \
-            --location $(location) \
-            --registry-login-server $(acrName).azurecr.io \
-            --registry-username $(acrName) \
-            --registry-password $(az acr credential show -n $(acrName) --query "passwords[0].value" -o tsv) \
-            --environment-variables PORT=$(containerPort)
+                echo "Creo nuovo container su ACI"
+                az container create --resource-group $(resourceGroupName) --name $(aciName) --image ${FULL_IMAGE_NAME} --os-type Linux --cpu 1 --memory 1.5 --ports $(containerPort) --ip-address Public --dns-name-label $(aciDnsName) --location $(location) --registry-login-server $(acrName).azurecr.io --registry-username ${ACR_USER} --registry-password ${ACR_PASS} --environment-variables PORT=$(containerPort)
 
-          echo "=== GET FQDN ==="
-          FQDN=$(az container show \
-            --resource-group $(resourceGroupName) \
-            --name $(aciName) \
-            --query ipAddress.fqdn \
-            -o tsv)
-
-          echo "==================================="
-          echo "APP URL: http://$FQDN:$(containerPort)"
-          echo "==================================="
+                echo "Recupero FQDN"
+                az container show --resource-group $(resourceGroupName) --name $(aciName) --query ipAddress.fqdn -o tsv
+                        echo "Applicazione disponibile su: http://${FQDN}:$(containerPort)"
